@@ -1,0 +1,112 @@
+---
+title: "Projet_ADD2"
+author: "EL_Hadrami_N'DOYE"
+date: "02/04/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(class)
+library(png)
+source("help.R")
+library(tidyverse)
+```
+
+1. Reconstruction du premier image bruitée
+
+```{r}
+# read image
+img1 <- readPNG("image/Image10pourcent.png")
+#img2 <-  readPNG("image/StarWars.png")
+display(img1)
+# transformation du jeu de données en matrice
+X <- apply(img1, 3, function(x) {
+as.vector(x)
+})
+X1 <- apply(img1, 3, function(x) {
+as.vector(x)
+})
+ind.brut <-  which(X[,1]==1,X[,2]==1,X[,3]==1)
+X1 <- X1[-ind.brut,]
+# set.seed(23)
+# ind1 <- sample(1:50000)
+# X1 <- X1[ind1,]
+set.seed(23)
+y1 <- sample(c(1:3),dim(X1)[1],replace = TRUE)
+set.seed(23)
+ind.test <- sample(1:6744)
+X.train <- X1[-ind.test,]
+y.train <- y1[-ind.test]
+X.test <- X1[ind.test,]
+y.test <- y1[ind.test]
+k.list <- 1:10
+acc1 <- c()
+for(i in 1:length(k.list)){
+  k=k.list[i]
+  cat("*** processing k=", k, "***\n")
+  kppv1 <-knn(X.train,X.test,y.train,k=i)
+  # calcul du tau de bonne classification
+  acc1[i] <- mean(kppv1==y.test)
+}
+plot(k.list,acc1,type = "b",col="red",xlab="nombre de voisinage",ylab="taux de bonne classification",main="Repartition des scores en fonction du nombre de voisinage")
+k.best <- k.list[which.max(acc1)]
+kppv1.best <- knn(X.train,X.test,y.train,k=k.best)
+rgb.bruite <- matrix(0,nrow = 6744,ncol = 3,byrow = T)
+for(i in 1:6744){
+  rgb.bruite[i,] <- X1[kppv1.best[i],]
+  X[ind.brut[i],] <- rgb.bruite[i,] 
+}
+# reconstruction d'image avec les données de k-ppv
+img1.kppv <- array(c(X[,1],X[,2],X[,3]),c(256,256,3))
+display(img1,img1.kppv)
+```
+
+2. Reconstruction du seconde image bruitée
+
+```{r}
+# read image
+img2 <- readPNG("image/Image20pourcent.png")
+display(img2)
+# transformation du jeu de données en matrice
+X <- apply(img2, 3, function(x) {
+as.vector(x)
+})
+X2 <- apply(img2, 3, function(x) {
+as.vector(x)
+})
+ind.brut1 <-  which(X[,1]==1,X[,2]==1,X[,3]==1)
+X2 <- X2[-ind.brut1,]
+set.seed(23)
+y2 <- sample(c(1:3),dim(X2)[1],replace = TRUE)
+set.seed(23)
+ind.test <- sample(1:13273)
+X.train1 <- X2[-ind.test,]
+y.train1 <- y2[-ind.test]
+X.test1 <- X2[ind.test,]
+y.test1 <- y2[ind.test]
+k.list <- 1:10
+acc2 <- c()
+for(i in 1:length(k.list)){
+  k=k.list[i]
+  cat("*** processing k=", k, "***\n")
+  kppv2 <-knn(X.train1,X.test1,y.train1,k=i)
+  # calcul du tau de bonne classification
+  acc2[i] <- mean(kppv2==y.test1)
+}
+plot(1:10,acc2,type = "b",col="red",xlab="nombre de voisinage",ylab="taux de bonne classification",main="Repartition des scores en fonction du nombre de voisinage")
+kppv1.best <- knn(X.train1,X.test1,y.train1,k=8)
+rgb.bruite1 <- matrix(0,nrow = 13273,ncol = 3,byrow = T)
+for(i in 1:13273){
+  rgb.bruite1[i,] <- X2[kppv1.best[i],]
+  X[ind.brut1[i],] <- rgb.bruite1[i,]
+}
+# reconstruction d'image avec les données de k-ppv
+img2.kppv <- array(c(X[,1],X[,2],X[,3]),c(256,256,3))
+display(img2)
+```
+
+
